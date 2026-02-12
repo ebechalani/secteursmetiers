@@ -496,3 +496,235 @@ Compétences : ...
 
         <div style="margin-top:10px;">
           <label><b>Métier 2 — titre</b></label>
+          <input id="job2" type="text" placeholder="Ex: Technicien réseau" />
+          <label class="mini muted">Infos métier 2</label>
+          <textarea id="job2info" rows="4" placeholder="Rôle : ...
+Compétences : ...
+Études : ..."></textarea>
+        </div>
+
+        <div style="margin-top:10px;">
+          <button class="primary" id="makePlan">Générer mon plan</button>
+        </div>
+
+        <div id="planOut" class="previewBox mini" style="display:none; margin-top:10px;"></div>
+      </div>
+
+      <div class="previewBox">
+        <b>Rubrique (notation simple)</b>
+        <div class="jobCard">
+          ✅ Navigation (Accueil → Liste → Fiche) : 6 pts<br/>
+          ✅ Contenu (secteur + 3 métiers + infos) : 8 pts<br/>
+          ✅ Design (lisibilité + titres + logo) : 4 pts<br/>
+          ✅ Oral 30s : 2 pts
+        </div>
+      </div>
+
+      <div class="previewBox">
+        <b>Bonus ⭐</b>
+        <div class="mini muted">
+          Ajouter une recherche, une image par métier, ou sauvegarder le secteur avec <span class="k">TinyDB</span>.
+        </div>
+      </div>
+    </div>
+  </aside>
+</main>
+
+<footer>
+  <div>© Projet 4e — Secteurs & Métiers — Guide pas à pas (App Inventor)</div>
+</footer>
+
+<script>
+  // ---------- Persistence ----------
+  const KEY = "ai_secteurs_metiers_progress_v2";
+  const state = JSON.parse(localStorage.getItem(KEY) || "{}");
+
+  function save(){
+    localStorage.setItem(KEY, JSON.stringify(state));
+    updateUI();
+  }
+
+  // ---------- Progress UI ----------
+  const checks = document.querySelectorAll('input[type="checkbox"][data-check]');
+
+  function updateUI(){
+    // done icon per step
+    for(let step=0; step<=7; step++){
+      const stepChecks = [...document.querySelectorAll(`input[data-check^="${step}-"]`)];
+      const done = stepChecks.length ? stepChecks.every(c => c.checked) : false;
+      const icon = document.getElementById(`done-${step}`);
+      if(icon) icon.textContent = done ? "✅" : "⬜";
+    }
+
+    // progress percentage
+    const total = checks.length;
+    const checked = [...checks].filter(c => c.checked).length;
+    const pct = total ? Math.round((checked/total)*100) : 0;
+    document.getElementById("pct").textContent = pct + "%";
+    document.getElementById("barFill").style.width = pct + "%";
+  }
+
+  // load checks
+  checks.forEach(c => {
+    const id = c.getAttribute("data-check");
+    c.checked = !!state[id];
+    c.addEventListener("change", () => { state[id] = c.checked; save(); });
+  });
+
+  // ---------- Inputs save/restore ----------
+  const inputsToSave = ["sectorSelect","jobCount","btnText","jobsInput","infoExample",
+                        "sectorPreview","job1","job1info","job2","job2info"];
+
+  inputsToSave.forEach(id=>{
+    const el = document.getElementById(id);
+    if(!el) return;
+    el.value = state["val_"+id] || el.value || "";
+    el.addEventListener("input", ()=>{
+      state["val_"+id] = el.value;
+      save();
+    });
+  });
+
+  // ---------- Jobs preview (right side of step 3) ----------
+  const jobsInput = document.getElementById("jobsInput");
+  const jobsPreview = document.getElementById("jobsPreview");
+
+  function escapeHtml(str){
+    return str
+      .replaceAll("&","&amp;")
+      .replaceAll("<","&lt;")
+      .replaceAll(">","&gt;")
+      .replaceAll('"',"&quot;");
+  }
+
+  function renderJobsPreview(){
+    const lines = (jobsInput.value || "")
+      .split("\n")
+      .map(s => s.trim())
+      .filter(Boolean);
+
+    if(!lines.length){
+      jobsPreview.textContent = "Choisis un secteur pour voir les métiers.";
+      return;
+    }
+
+    jobsPreview.innerHTML = lines
+      .map((j,i)=>`<div class="jobCard"><b>${i+1}.</b> ${escapeHtml(j)}</div>`)
+      .join("");
+  }
+
+  jobsInput.addEventListener("input", ()=>{
+    state["val_jobsInput"] = jobsInput.value;
+    save();
+    renderJobsPreview();
+  });
+
+  // ---------- Load sectors JSON + fill dropdown + auto-fill jobs ----------
+  let sectorsData = null;
+
+  async function loadSectors(){
+    try{
+      const res = await fetch("./data/sectors.json");
+      sectorsData = await res.json();
+
+      const sel = document.getElementById("sectorSelect");
+      if(!sel) return;
+
+      // Fill dropdown
+      sectorsData.sectors.forEach((s) => {
+        const opt = document.createElement("option");
+        opt.value = s.name;
+        opt.textContent = s.name;
+        sel.appendChild(opt);
+      });
+
+      // Restore selection
+      const savedSector = state["val_sectorSelect"] || "";
+      if(savedSector){
+        sel.value = savedSector;
+        applySectorToJobs(savedSector);
+      }
+
+      // On change
+      sel.addEventListener("change", () => {
+        state["val_sectorSelect"] = sel.value;
+        save();
+        applySectorToJobs(sel.value);
+      });
+
+    } catch(e){
+      console.warn("Impossible de charger ./data/sectors.json", e);
+    }
+  }
+
+  function applySectorToJobs(sectorName){
+    const sectorPreview = document.getElementById("sectorPreview");
+    if(sectorPreview){
+      sectorPreview.value = sectorName || "";
+      state["val_sectorPreview"] = sectorPreview.value;
+    }
+
+    if(!sectorsData || !jobsInput) return;
+
+    if(!sectorName){
+      jobsInput.value = "";
+      state["val_jobsInput"] = "";
+      save();
+      renderJobsPreview();
+      return;
+    }
+
+    const sector = sectorsData.sectors.find(s => s.name === sectorName);
+    if(!sector) return;
+
+    const lines = sector.jobs.map(j => j.title);
+    jobsInput.value = lines.join("\n");
+    state["val_jobsInput"] = jobsInput.value;
+
+    save();
+    renderJobsPreview();
+  }
+
+  // ---------- Buttons ----------
+  document.getElementById("openAll").addEventListener("click", ()=>{
+    document.querySelectorAll("#steps details").forEach(d=>d.open=true);
+  });
+  document.getElementById("closeAll").addEventListener("click", ()=>{
+    document.querySelectorAll("#steps details").forEach(d=>d.open=false);
+  });
+  document.getElementById("reset").addEventListener("click", ()=>{
+    if(confirm("Réinitialiser toute la progression ?")){
+      localStorage.removeItem(KEY);
+      location.reload();
+    }
+  });
+
+  // ---------- Plan generator ----------
+  document.getElementById("makePlan").addEventListener("click", ()=>{
+    const sector = document.getElementById("sectorPreview").value.trim();
+    const j1 = document.getElementById("job1").value.trim();
+    const j1i = document.getElementById("job1info").value.trim();
+    const j2 = document.getElementById("job2").value.trim();
+    const j2i = document.getElementById("job2info").value.trim();
+
+    const out = [];
+    out.push(`SECTEUR : ${sector || "(à compléter)"}`);
+    out.push("");
+    out.push(`- MÉTIER : ${j1 || "(métier 1)"}`);
+    out.push(`${j1i || "(infos métier 1)"}`);
+    out.push("");
+    out.push(`- MÉTIER : ${j2 || "(métier 2)"}`);
+    out.push(`${j2i || "(infos métier 2)"}`);
+
+    const box = document.getElementById("planOut");
+    box.style.display = "block";
+    box.textContent = out.join("\n");
+  });
+
+  // init
+  updateUI();
+  renderJobsPreview();
+  loadSectors();
+</script>
+</body>
+</html>
