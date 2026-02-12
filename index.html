@@ -1,0 +1,498 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Projet App Inventor — Secteurs & Métiers (4e)</title>
+  <style>
+    :root{
+      --bg:#0b1020; --card:#121a33; --muted:#a9b3d1; --text:#eef2ff;
+      --accent:#6ee7ff; --accent2:#a78bfa; --ok:#34d399; --warn:#fbbf24;
+      --border:rgba(255,255,255,.12);
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0; font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial;
+      background:radial-gradient(900px 500px at 20% 10%, rgba(167,139,250,.20), transparent 60%),
+                 radial-gradient(900px 500px at 80% 20%, rgba(110,231,255,.16), transparent 60%),
+                 var(--bg);
+      color:var(--text);
+    }
+    a{color:var(--accent); text-decoration:none}
+    a:hover{text-decoration:underline}
+    header{
+      padding:28px 18px 10px;
+      max-width:1100px; margin:0 auto;
+    }
+    .title{
+      display:flex; gap:14px; align-items:flex-start; flex-wrap:wrap;
+    }
+    .badge{
+      padding:6px 10px; border:1px solid var(--border);
+      border-radius:999px; color:var(--muted); font-size:12px;
+      background:rgba(255,255,255,.04)
+    }
+    h1{margin:0; font-size:28px; letter-spacing:.2px}
+    .sub{color:var(--muted); margin-top:8px; line-height:1.5}
+    main{max-width:1100px; margin:0 auto; padding:12px 18px 40px}
+    .grid{display:grid; grid-template-columns: 1.15fr .85fr; gap:14px}
+    @media (max-width: 980px){ .grid{grid-template-columns:1fr} }
+
+    .card{
+      background:linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.03));
+      border:1px solid var(--border);
+      border-radius:18px;
+      box-shadow:0 10px 30px rgba(0,0,0,.25);
+      overflow:hidden;
+    }
+    .card .head{
+      padding:14px 16px; border-bottom:1px solid var(--border);
+      display:flex; justify-content:space-between; align-items:center; gap:10px;
+    }
+    .card .body{padding:14px 16px}
+    .pill{
+      font-size:12px; color:var(--muted);
+      border:1px solid var(--border); border-radius:999px;
+      padding:5px 10px; background:rgba(0,0,0,.16)
+    }
+    .progressWrap{display:flex; gap:10px; align-items:center; width:100%}
+    .bar{
+      height:10px; background:rgba(255,255,255,.10);
+      border-radius:999px; overflow:hidden; flex:1; border:1px solid var(--border)
+    }
+    .bar > div{height:100%; width:0%; background:linear-gradient(90deg,var(--accent),var(--accent2))}
+    .pct{min-width:52px; text-align:right; color:var(--muted); font-size:12px}
+
+    details{
+      border:1px solid var(--border);
+      border-radius:14px;
+      margin:10px 0;
+      background:rgba(0,0,0,.14);
+    }
+    summary{
+      cursor:pointer; padding:12px 12px;
+      list-style:none; display:flex; align-items:center; gap:10px;
+    }
+    summary::-webkit-details-marker{display:none}
+    .stepNum{
+      width:30px; height:30px; border-radius:10px;
+      display:grid; place-items:center;
+      background:rgba(110,231,255,.14);
+      border:1px solid rgba(110,231,255,.35);
+      color:var(--text); font-weight:700;
+      flex:0 0 auto;
+    }
+    .doneIcon{
+      width:22px; height:22px; border-radius:8px;
+      display:grid; place-items:center;
+      border:1px solid var(--border);
+      background:rgba(255,255,255,.05);
+      margin-left:auto;
+    }
+    details[open] summary{border-bottom:1px solid var(--border)}
+    .stepBody{padding:12px 12px 14px}
+    .muted{color:var(--muted)}
+    .k{
+      display:inline-block; padding:2px 8px; border-radius:999px;
+      border:1px solid var(--border); background:rgba(255,255,255,.05);
+      font-size:12px; color:var(--text)
+    }
+    .checklist{display:grid; gap:8px; margin:10px 0 0}
+    .check{
+      display:flex; gap:10px; align-items:flex-start; padding:10px;
+      border:1px solid var(--border); border-radius:12px; background:rgba(255,255,255,.03)
+    }
+    .check input{margin-top:3px}
+    .hint{
+      padding:10px; border-left:3px solid var(--accent2);
+      background:rgba(167,139,250,.10);
+      border-radius:12px; margin:10px 0; color:var(--text)
+    }
+    .warn{
+      border-left-color:var(--warn);
+      background:rgba(251,191,36,.10)
+    }
+    .btnRow{display:flex; gap:10px; flex-wrap:wrap; margin-top:10px}
+    button{
+      cursor:pointer; border:1px solid var(--border);
+      background:rgba(255,255,255,.06);
+      color:var(--text);
+      padding:10px 12px;
+      border-radius:12px;
+    }
+    button.primary{border-color:rgba(110,231,255,.5); background:rgba(110,231,255,.10)}
+    button.danger{border-color:rgba(248,113,113,.5); background:rgba(248,113,113,.10)}
+    textarea, input[type="text"], select{
+      width:100%; padding:10px 12px; border-radius:12px;
+      border:1px solid var(--border); background:rgba(0,0,0,.22); color:var(--text);
+      outline:none;
+    }
+    .two{display:grid; grid-template-columns:1fr 1fr; gap:10px}
+    @media (max-width:680px){ .two{grid-template-columns:1fr} }
+    .mini{
+      font-size:12px; color:var(--muted); line-height:1.4
+    }
+    .previewBox{
+      border:1px dashed rgba(255,255,255,.25);
+      border-radius:16px; padding:12px; margin-top:10px;
+      background:rgba(0,0,0,.18)
+    }
+    .jobCard{
+      border:1px solid var(--border);
+      background:rgba(255,255,255,.03);
+      border-radius:14px;
+      padding:10px;
+      margin:8px 0;
+    }
+    footer{
+      max-width:1100px; margin:0 auto; padding:0 18px 30px;
+      color:var(--muted);
+    }
+  </style>
+</head>
+
+<body>
+<header>
+  <div class="title">
+    <div>
+      <h1>Projet App Inventor — Secteurs & Métiers (4e)</h1>
+      <div class="sub">
+        Objectif : créer une application mobile avec <b>1 écran logo</b> → <b>liste de métiers</b> → <b>fiche métier</b>.<br/>
+        Chaque élève choisit <span class="k">un secteur</span>, puis complète les <span class="k">informations</span> sur les métiers.
+      </div>
+    </div>
+    <div class="badge">Durée conseillée : 2 à 4 séances</div>
+    <div class="badge">Production finale : .AIA + captures + mini oral</div>
+  </div>
+</header>
+
+<main class="grid">
+  <!-- LEFT: Steps -->
+  <section class="card">
+    <div class="head">
+      <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
+        <div class="pill">Étapes guidées</div>
+        <div class="pill">Progression enregistrée ✅</div>
+      </div>
+      <div class="progressWrap" aria-label="progression">
+        <div class="bar"><div id="barFill"></div></div>
+        <div class="pct" id="pct">0%</div>
+      </div>
+    </div>
+
+    <div class="body" id="steps">
+      <!-- Step 0 -->
+      <details data-step="0">
+        <summary>
+          <div class="stepNum">0</div>
+          <div>
+            <b>Choisir ton secteur + préparer tes métiers</b><br/>
+            <span class="mini">Tu choisis un secteur (menu) et tu te prépares à écrire les infos.</span>
+          </div>
+          <div class="doneIcon" id="done-0">⬜</div>
+        </summary>
+        <div class="stepBody">
+          <div class="two">
+            <div>
+              <label><b>Mon secteur</b></label>
+              <select id="sectorSelect">
+                <option value="">— Choisir un secteur —</option>
+              </select>
+              <div class="mini">Quand tu choisis un secteur, la liste des métiers se remplira automatiquement à l’étape 3.</div>
+            </div>
+            <div>
+              <label><b>Nombre de métiers visés</b></label>
+              <input id="jobCount" type="text" placeholder="Ex: 3" />
+              <div class="mini">Recommandation : 3 à 6 métiers.</div>
+            </div>
+          </div>
+
+          <div class="hint">
+            <b>À préparer</b> (avant de coder) : pour chaque métier → 3 à 5 lignes :
+            rôle, compétences, outils, études, où on travaille, etc.
+          </div>
+
+          <div class="checklist">
+            <label class="check"><input type="checkbox" data-check="0-0"> J’ai choisi mon secteur</label>
+            <label class="check"><input type="checkbox" data-check="0-1"> Je vois les métiers proposés pour mon secteur</label>
+            <label class="check"><input type="checkbox" data-check="0-2"> Je suis prêt(e) à écrire les infos de chaque métier</label>
+          </div>
+        </div>
+      </details>
+
+      <!-- Step 1 -->
+      <details data-step="1">
+        <summary>
+          <div class="stepNum">1</div>
+          <div>
+            <b>Créer le projet App Inventor + préparer les écrans</b><br/>
+            <span class="mini">Projet + 3 écrans : Accueil → Métiers → Infos métier</span>
+          </div>
+          <div class="doneIcon" id="done-1">⬜</div>
+        </summary>
+        <div class="stepBody">
+          <div class="hint warn">
+            <b>À faire dans App Inventor :</b><br/>
+            1) New Project → nom : <span class="k">SecteursMetiers_TonPrenom</span><br/>
+            2) Crée 3 écrans : <span class="k">Screen1</span> (Accueil), <span class="k">ScreenJobs</span>, <span class="k">ScreenInfo</span>
+          </div>
+
+          <div class="checklist">
+            <label class="check"><input type="checkbox" data-check="1-0"> J’ai créé mon projet</label>
+            <label class="check"><input type="checkbox" data-check="1-1"> J’ai 3 écrans (Screen1, ScreenJobs, ScreenInfo)</label>
+            <label class="check"><input type="checkbox" data-check="1-2"> J’ai renommé les écrans comme demandé</label>
+          </div>
+
+          <div class="previewBox">
+            <b>Plan de l’app</b>
+            <div class="mini">Screen1 (logo + bouton) → ScreenJobs (liste) → ScreenInfo (texte + retour)</div>
+          </div>
+        </div>
+      </details>
+
+      <!-- Step 2 -->
+      <details data-step="2">
+        <summary>
+          <div class="stepNum">2</div>
+          <div>
+            <b>Design Screen1 (logo + bouton)</b><br/>
+            <span class="mini">Un logo/une image + un bouton “Voir les métiers”.</span>
+          </div>
+          <div class="doneIcon" id="done-2">⬜</div>
+        </summary>
+        <div class="stepBody">
+          <div class="two">
+            <div>
+              <div class="hint">
+                <b>Composants à ajouter :</b><br/>
+                - Image (logo du secteur)<br/>
+                - Label (titre du secteur)<br/>
+                - Button (aller vers la liste)
+              </div>
+              <div class="mini">Conseil : centre tes éléments (AlignHorizontal/Vertical).</div>
+            </div>
+            <div>
+              <label><b>Texte du bouton</b></label>
+              <input id="btnText" type="text" placeholder="Ex: Voir les métiers" />
+              <div class="mini">Tu peux aussi écrire “Découvrir les métiers”.</div>
+            </div>
+          </div>
+
+          <div class="checklist">
+            <label class="check"><input type="checkbox" data-check="2-0"> J’ai ajouté le logo (Image)</label>
+            <label class="check"><input type="checkbox" data-check="2-1"> J’ai mis le titre (Label)</label>
+            <label class="check"><input type="checkbox" data-check="2-2"> J’ai mis le bouton pour continuer</label>
+          </div>
+        </div>
+      </details>
+
+      <!-- Step 3 -->
+      <details data-step="3">
+        <summary>
+          <div class="stepNum">3</div>
+          <div>
+            <b>Créer la liste des métiers (ScreenJobs)</b><br/>
+            <span class="mini">Une ListView : cliquer sur un métier ouvre sa fiche.</span>
+          </div>
+          <div class="doneIcon" id="done-3">⬜</div>
+        </summary>
+        <div class="stepBody">
+          <div class="hint">
+            <b>Composants sur ScreenJobs :</b><br/>
+            - Label (titre : “Métiers du secteur …”)<br/>
+            - ListView (liste des métiers)<br/>
+            - Button (retour à l’accueil)
+          </div>
+
+          <div class="two">
+            <div>
+              <label><b>Métiers (1 par ligne)</b></label>
+              <textarea id="jobsInput" rows="8" placeholder="La liste se remplit automatiquement quand tu choisis un secteur.
+Tu peux ajouter/enlever des métiers si tu veux."></textarea>
+              <div class="mini">Tu peux modifier la liste : ajoute/retire des métiers si nécessaire.</div>
+            </div>
+            <div>
+              <div class="previewBox">
+                <b>Aperçu de ta liste</b>
+                <div id="jobsPreview" class="mini muted">Choisis un secteur pour voir les métiers.</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="checklist">
+            <label class="check"><input type="checkbox" data-check="3-0"> J’ai mis une ListView</label>
+            <label class="check"><input type="checkbox" data-check="3-1"> Ma ListView affiche les métiers</label>
+            <label class="check"><input type="checkbox" data-check="3-2"> J’ai ajouté un bouton “Retour”</label>
+          </div>
+        </div>
+      </details>
+
+      <!-- Step 4 -->
+      <details data-step="4">
+        <summary>
+          <div class="stepNum">4</div>
+          <div>
+            <b>Écran fiche métier (ScreenInfo)</b><br/>
+            <span class="mini">Afficher le métier choisi + ses informations.</span>
+          </div>
+          <div class="doneIcon" id="done-4">⬜</div>
+        </summary>
+        <div class="stepBody">
+          <div class="hint">
+            <b>Composants sur ScreenInfo :</b><br/>
+            - Label (nom du métier)<br/>
+            - Label ou TextBox (infos du métier)<br/>
+            - Button (retour à la liste)
+          </div>
+
+          <label><b>Exemple d’informations (modèle)</b></label>
+          <textarea id="infoExample" rows="7" placeholder="Rôle : …
+Compétences : …
+Où on travaille : …
+Études : …
+Pourquoi ce métier m’intéresse : …"></textarea>
+
+          <div class="checklist">
+            <label class="check"><input type="checkbox" data-check="4-0"> J’ai un label pour le nom du métier</label>
+            <label class="check"><input type="checkbox" data-check="4-1"> J’ai une zone pour afficher les infos</label>
+            <label class="check"><input type="checkbox" data-check="4-2"> J’ai un bouton retour vers la liste</label>
+          </div>
+        </div>
+      </details>
+
+      <!-- Step 5 -->
+      <details data-step="5">
+        <summary>
+          <div class="stepNum">5</div>
+          <div>
+            <b>Blocks : navigation + affichage (le cœur du projet)</b><br/>
+            <span class="mini">Bouton → ScreenJobs ; clic métier → ScreenInfo + texte.</span>
+          </div>
+          <div class="doneIcon" id="done-5">⬜</div>
+        </summary>
+        <div class="stepBody">
+          <div class="hint warn">
+            <b>Idée simple (niveau 4e) :</b><br/>
+            - Screen1 ouvre ScreenJobs<br/>
+            - ScreenJobs envoie le <span class="k">nom du métier</span> à ScreenInfo (Start Value)<br/>
+            - ScreenInfo affiche le texte correspondant au métier
+          </div>
+
+          <div class="previewBox">
+            <b>Pseudo-blocs</b>
+            <div class="mini">
+              1) Screen1.ButtonClick → open ScreenJobs<br/>
+              2) ScreenJobs.ListView.AfterPicking → open ScreenInfo with start value = ListView.Selection<br/>
+              3) ScreenInfo.Initialize → selectedJob = get start value → if selectedJob = “…” then set InfoText = “…”<br/>
+            </div>
+          </div>
+
+          <div class="checklist">
+            <label class="check"><input type="checkbox" data-check="5-0"> Mon bouton sur Screen1 ouvre ScreenJobs</label>
+            <label class="check"><input type="checkbox" data-check="5-1"> Je peux cliquer un métier dans la ListView</label>
+            <label class="check"><input type="checkbox" data-check="5-2"> ScreenInfo affiche les infos du métier choisi</label>
+          </div>
+        </div>
+      </details>
+
+      <!-- Step 6 -->
+      <details data-step="6">
+        <summary>
+          <div class="stepNum">6</div>
+          <div>
+            <b>Tests + amélioration + finition</b><br/>
+            <span class="mini">Tester, corriger, rendre l’app claire et jolie.</span>
+          </div>
+          <div class="doneIcon" id="done-6">⬜</div>
+        </summary>
+        <div class="stepBody">
+          <div class="hint">
+            <b>Tests indispensables :</b><br/>
+            - Le bouton fonctionne (Accueil → Liste)<br/>
+            - Chaque métier ouvre la bonne fiche<br/>
+            - Les boutons retour fonctionnent<br/>
+            - Texte lisible (taille, retours à la ligne)
+          </div>
+
+          <div class="checklist">
+            <label class="check"><input type="checkbox" data-check="6-0"> J’ai testé sur AI Companion (ou émulateur)</label>
+            <label class="check"><input type="checkbox" data-check="6-1"> Tout fonctionne sans bug</label>
+            <label class="check"><input type="checkbox" data-check="6-2"> J’ai amélioré le design (alignement, titres, lisibilité)</label>
+          </div>
+        </div>
+      </details>
+
+      <!-- Step 7 -->
+      <details data-step="7">
+        <summary>
+          <div class="stepNum">7</div>
+          <div>
+            <b>Production finale : ce que tu dois rendre</b><br/>
+            <span class="mini">Export + preuves + mini présentation</span>
+          </div>
+          <div class="doneIcon" id="done-7">⬜</div>
+        </summary>
+        <div class="stepBody">
+          <div class="hint warn">
+            <b>À rendre :</b><br/>
+            1) Le fichier projet <span class="k">.aia</span><br/>
+            2) 2 captures d’écran : Accueil + Fiche métier<br/>
+            3) Mini oral (30 s) : secteur + 3 métiers + pourquoi
+          </div>
+
+          <div class="checklist">
+            <label class="check"><input type="checkbox" data-check="7-0"> J’ai exporté mon .aia</label>
+            <label class="check"><input type="checkbox" data-check="7-1"> J’ai pris 2 captures d’écran</label>
+            <label class="check"><input type="checkbox" data-check="7-2"> Je peux expliquer mon app en 30 secondes</label>
+          </div>
+
+          <div class="btnRow">
+            <button class="primary" id="openAll">Ouvrir toutes les étapes</button>
+            <button id="closeAll">Fermer toutes les étapes</button>
+            <button class="danger" id="reset">Réinitialiser la progression</button>
+          </div>
+          <div class="mini" style="margin-top:8px;">
+            La progression est enregistrée sur cet ordinateur.
+          </div>
+        </div>
+      </details>
+    </div>
+  </section>
+
+  <!-- RIGHT -->
+  <aside class="card">
+    <div class="head">
+      <div class="pill">Outils & Aide</div>
+      <div class="pill">Préparer le contenu</div>
+    </div>
+    <div class="body">
+      <div class="hint">
+        <b>Liens utiles</b><br/>
+        - MIT App Inventor : <span class="muted">appinventor.mit.edu</span><br/>
+        - AI Companion : test sur téléphone (QR code)
+      </div>
+
+      <div class="hint warn">
+        <b>Règle</b> : écrire des infos simples, niveau 4e (3–5 lignes par métier).
+      </div>
+
+      <div class="previewBox">
+        <b>Générateur “plan de contenu”</b>
+        <div class="mini muted">Tu peux préparer ton texte ici avant de le recopier dans App Inventor.</div>
+
+        <div style="margin-top:10px;">
+          <label><b>Secteur (auto)</b></label>
+          <input id="sectorPreview" type="text" placeholder="(rempli automatiquement)" />
+        </div>
+
+        <div style="margin-top:10px;">
+          <label><b>Métier 1 — titre</b></label>
+          <input id="job1" type="text" placeholder="Ex: Développeur" />
+          <label class="mini muted">Infos métier 1</label>
+          <textarea id="job1info" rows="4" placeholder="Rôle : ...
+Compétences : ...
+Études : ..."></textarea>
+        </div>
+
+        <div style="margin-top:10px;">
+          <label><b>Métier 2 — titre</b></label>
